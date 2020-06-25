@@ -179,9 +179,11 @@ public class MainActivity extends AppCompatActivity {
                 if(urlConnection.getResponseCode() == 200) {
                     inputStream = urlConnection.getInputStream();
                     jsonResponse = readFromStream(inputStream);
+                } else { //the response code wasn't 200 so print out which one it was
+                    Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
                 }
             } catch (IOException e) {
-                // TODO: Handle the exception
+                Log.e(LOG_TAG, "problem getting the JSON earthquake results", e);
             } finally {
                 if (urlConnection != null) {
                     urlConnection.disconnect();
@@ -198,17 +200,39 @@ public class MainActivity extends AppCompatActivity {
          * Convert the {@link InputStream} into a String which contains the
          * whole JSON response from the server.
          */
+
+        /*InputStream and BufferedReader
+            process to help take a byte stream off the network connection and prepares the text to be properly used in the app
+            to convert a byte stream to a stream we use the InputStream and BufferedReader classes
+            InputStream: represents a stream of bytes where each byte is a small chunk of data, processes one byte at a time
+            BufferedReader: helps us read text from the InputStream, could read one line of text at a time and then build up a string with the entire contents of the InputStream
+            think of this like water from faucet into a bathtub that later drains out
+        */
         private String readFromStream(InputStream inputStream) throws IOException {
+            /*String versus StringBuilder
+                String: immutable, can't change once created
+                StringBuilder: mutable, CAN change once created, this is the better choice when gradually building up text over several steps because
+                this is more efficient than continually creating a new string object each time we have more content to add to the response text
+
+            */
+
+            //set up the builder
             StringBuilder output = new StringBuilder();
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+                //set up the reader
                 BufferedReader reader = new BufferedReader(inputStreamReader);
+                //ask the BufferedReader for a line of text
                 String line = reader.readLine();
+                //while the line isn't null
                 while (line != null) {
+                    //append the line to the string buffer
                     output.append(line);
+                    //and read another line
                     line = reader.readLine();
                 }
             }
+            //the BufferedReader has run out of lines, use toString to get and return the final outputs from the string builder
             return output.toString();
         }
 
@@ -247,3 +271,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
+
+
+//Method Chaining
+//this is multiple method calls on the same line, for example:
+//myStringBuilder.append("hello ").append("world");
